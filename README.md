@@ -16,10 +16,11 @@ Application web de gestion et d'automatisation des offres de prix en réponse au
   - Export au format Word (.docx)
 
 - **Interface Utilisateur**
-  - Interface Streamlit intuitive
+  - Interface web Flask moderne et responsive
   - Visualisation et recherche de documents
   - Téléchargement des fichiers générés
   - Historique des générations
+  - Streaming en temps réel des générations IA (SSE)
 
 ## Prérequis
 
@@ -66,11 +67,21 @@ ollama pull llama3.2
 **Lancer l'application:**
 ```bash
 python run.py
-# ou
-streamlit run app/streamlit_app.py
 ```
 
-L'application sera accessible sur http://localhost:8501
+L'application sera accessible sur http://localhost:5000
+
+**Variables d'environnement optionnelles pour le démarrage:**
+```bash
+# Changer le port (par défaut: 5000)
+PORT=8080 python run.py
+
+# Activer le mode debug
+FLASK_DEBUG=true python run.py
+
+# Changer l'hôte (par défaut: 0.0.0.0)
+HOST=127.0.0.1 python run.py
+```
 
 ## Structure du Projet
 
@@ -78,17 +89,28 @@ L'application sera accessible sur http://localhost:8501
 appliweb-AO/
 ├── app/
 │   ├── __init__.py
-│   ├── config.py           # Configuration
-│   ├── database.py         # Modèles SQLAlchemy
-│   ├── document_processor.py   # Traitement Word/PDF
-│   ├── ollama_client.py    # Client Ollama
-│   ├── services.py         # Logique métier
-│   └── streamlit_app.py    # Interface utilisateur
+│   ├── config.py              # Configuration
+│   ├── database.py            # Modèles SQLAlchemy
+│   ├── document_processor.py  # Traitement Word/PDF
+│   ├── ollama_client.py       # Client Ollama
+│   ├── services.py            # Logique métier
+│   ├── flask_app.py           # Application Flask
+│   ├── templates/             # Templates HTML Jinja2
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── upload.html
+│   │   ├── library.html
+│   │   ├── generate.html
+│   │   └── history.html
+│   └── static/                # Fichiers statiques
+│       ├── css/
+│       │   └── style.css
+│       └── js/
+│           └── generate.js
 ├── data/
-│   ├── uploads/            # Documents uploadés
-│   ├── generated/          # Offres générées
-│   └── templates/          # Modèles de rédaction
-├── config/
+│   ├── uploads/               # Documents uploadés
+│   ├── generated/             # Offres générées
+│   └── templates/             # Modèles de rédaction
 ├── requirements.txt
 ├── .env.example
 ├── run.py
@@ -108,10 +130,20 @@ Variables d'environnement (.env):
 
 ## Stack Technique
 
-- **Frontend**: Streamlit
-- **Backend/IA**: Ollama
+- **Framework Web**: Flask 3.0
+- **Frontend**: HTML5, Bootstrap 5, JavaScript (SSE)
+- **Backend/IA**: Ollama (avec streaming SSE)
 - **Base de données**: SQLAlchemy (PostgreSQL/SQLite)
 - **Traitement de fichiers**: python-docx, PyPDF2, pdfplumber
+
+## Fonctionnalités Techniques
+
+- **Server-Sent Events (SSE)**: Streaming en temps réel des générations IA
+- **Bootstrap 5**: Interface responsive et moderne
+- **Upload de fichiers**: Gestion sécurisée des uploads avec validation
+- **Context Processor**: Status Ollama disponible dans tous les templates
+- **Flash Messages**: Notifications utilisateur pour les actions
+- **Error Handling**: Gestion des erreurs 413 (fichiers trop volumineux)
 
 ## Workflow
 

@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - AppliWeb-AO{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <h1 class="mb-4">
+            <i class="bi bi-cloud-upload"></i> Upload de Documents
+        </h1>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <!-- Type de document -->
+                    <div class="mb-4">
+                        <label for="doc_type" class="form-label">
+                            <strong>Type de document</strong>
+                        </label>
+                        <select class="form-select" id="doc_type" name="doc_type" required onchange="updateFileExtensions()">
+                            <option value="tender">Appel d'Offre</option>
+                            <option value="template">Modèle de Rédaction (Offre de Prix)</option>
+                        </select>
+                        <div class="form-text" id="ext-info">
+                            Formats acceptés: {{ allowed_ext.appel_offre | join(', ') }}
+                        </div>
+                    </div>
+
+                    <!-- Fichier -->
+                    <div class="mb-4">
+                        <label for="file" class="form-label">
+                            <strong>Fichier</strong>
+                        </label>
+                        <input type="file" class="form-control" id="file" name="file" required>
+                        <div class="form-text">Taille maximale: {{ max_size }} MB</div>
+                    </div>
+
+                    <!-- Métadonnées -->
+                    <h5 class="mb-3">Métadonnées</h5>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="reference" class="form-label">Référence</label>
+                            <input type="text" class="form-control" id="reference" name="reference" placeholder="Auto-générée si vide">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="title" class="form-label">Titre</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="Nom du fichier par défaut">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" placeholder="Description optionnelle"></textarea>
+                    </div>
+
+                    <!-- Option modèle (uniquement pour offres de prix) -->
+                    <div class="mb-3" id="template-option" style="display: none;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_template" name="is_template" checked>
+                            <label class="form-check-label" for="is_template">
+                                Marquer comme modèle de référence
+                                <small class="text-muted d-block">Les modèles sont utilisés par l'IA pour générer les offres</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Boutons -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-cloud-upload"></i> Uploader le document
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Retour
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateFileExtensions() {
+    const docType = document.getElementById('doc_type').value;
+    const extInfo = document.getElementById('ext-info');
+    const templateOption = document.getElementById('template-option');
+
+    if (docType === 'tender') {
+        extInfo.textContent = 'Formats acceptés: {{ allowed_ext.appel_offre | join(", ") }}';
+        templateOption.style.display = 'none';
+    } else {
+        extInfo.textContent = 'Formats acceptés: {{ allowed_ext.offre_prix | join(", ") }}';
+        templateOption.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

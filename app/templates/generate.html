@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Générer Offre - AppliWeb-AO{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="bi bi-robot"></i> Génération Automatique d'Offres
+</h1>
+
+{% if not ollama_available %}
+<div class="alert alert-danger">
+    <i class="bi bi-x-circle"></i>
+    <strong>Ollama n'est pas disponible.</strong>
+    Veuillez le démarrer pour utiliser cette fonctionnalité.
+    <pre class="mt-2 mb-0">ollama serve</pre>
+</div>
+{% elif not tenders %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>Aucun appel d'offre disponible.</strong>
+    Veuillez d'abord <a href="{{ url_for('upload') }}">uploader un appel d'offre</a>.
+</div>
+{% else %}
+
+<!-- Formulaire de génération -->
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <form id="generateForm">
+            <!-- Étape 1: Sélectionner l'appel d'offre -->
+            <h4 class="mb-3">
+                <span class="badge bg-primary">1</span> Sélectionner l'Appel d'Offre
+            </h4>
+
+            <div class="mb-4">
+                <label for="tender_id" class="form-label">Appel d'offre source</label>
+                <select class="form-select" id="tender_id" name="tender_id" required onchange="loadTenderPreview()">
+                    <option value="">-- Sélectionner --</option>
+                    {% for tender in tenders %}
+                    <option value="{{ tender.id }}">{{ tender.reference }} - {{ tender.title }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Aperçu de l'appel d'offre -->
+            <div id="tender-preview" class="alert alert-info" style="display: none;">
+                <h6><i class="bi bi-eye"></i> Aperçu de l'appel d'offre</h6>
+                <pre id="tender-text" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;"></pre>
+            </div>
+
+            <!-- Bouton d'analyse -->
+            <div class="mb-4">
+                <button type="button" class="btn btn-info" id="analyzeBtn" onclick="analyzeTender()">
+                    <i class="bi bi-search"></i> Analyser l'appel d'offre
+                </button>
+            </div>
+
+            <!-- Résultat de l'analyse -->
+            <div id="analysis-result" style="display: none;" class="mb-4">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5><i class="bi bi-graph-up"></i> Analyse</h5>
+                        <div id="analysis-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- Étape 2: Sélectionner les modèles -->
+            <h4 class="mb-3">
+                <span class="badge bg-primary">2</span> Sélectionner les Modèles de Rédaction
+            </h4>
+
+            {% if templates %}
+            <div class="mb-4">
+                <label class="form-label">Modèles à utiliser (optionnel)</label>
+                {% for template in templates %}
+                <div class="form-check">
+                    <input class="form-check-input template-checkbox" type="checkbox" value="{{ template.id }}" id="template_{{ template.id }}" checked>
+                    <label class="form-check-label" for="template_{{ template.id }}">
+                        {{ template.reference }} - {{ template.title }}
+                    </label>
+                </div>
+                {% endfor %}
+                <small class="form-text text-muted">Sélectionnez les modèles dont l'IA doit s'inspirer</small>
+            </div>
+            {% else %}
+            <div class="alert alert-warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                Aucun modèle de rédaction disponible. L'IA utilisera ses connaissances générales.
+            </div>
+            {% endif %}
+
+            <hr>
+
+            <!-- Étape 3: Contexte supplémentaire -->
+            <h4 class="mb-3">
+                <span class="badge bg-primary">3</span> Contexte Supplémentaire (optionnel)
+            </h4>
+
+            <div class="mb-4">
+                <label for="additional_context" class="form-label">Instructions ou informations complémentaires</label>
+                <textarea class="form-control" id="additional_context" name="additional_context" rows="4" placeholder="Ajoutez des instructions spécifiques pour la génération..."></textarea>
+            </div>
+
+            <hr>
+
+            <!-- Étape 4: Générer -->
+            <h4 class="mb-3">
+                <span class="badge bg-primary">4</span> Générer l'Offre
+            </h4>
+
+            <button type="submit" class="btn btn-success btn-lg">
+                <i class="bi bi-rocket"></i> Générer l'Offre de Prix
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Résultat de la génération -->
+<div id="generation-result" style="display: none;" class="card shadow">
+    <div class="card-body">
+        <h4 class="mb-3">
+            <i class="bi bi-file-earmark-text"></i> Génération en cours...
+        </h4>
+
+        <!-- Status -->
+        <div id="generation-status" class="alert alert-info">
+            <i class="bi bi-hourglass-split"></i> Génération en cours... Veuillez patienter.
+        </div>
+
+        <!-- Contenu généré -->
+        <div class="card bg-light mb-3">
+            <div class="card-body">
+                <h5>Contenu généré:</h5>
+                <div id="generation-content" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
+        <!-- Bouton de téléchargement -->
+        <div id="download-section" style="display: none;">
+            <a id="download-btn" href="#" class="btn btn-primary btn-lg">
+                <i class="bi bi-download"></i> Télécharger l'offre générée
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/generate.js') }}"></script>
+{% endblock %}
