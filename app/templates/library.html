@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Bibliothèque - AppliWeb-AO{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="bi bi-book"></i> Bibliothèque de Documents
+</h1>
+
+<!-- Filtres -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('library') }}">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="type" class="form-label">Type de document</label>
+                    <select class="form-select" id="type" name="type" onchange="this.form.submit()">
+                        <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Tous</option>
+                        <option value="tenders" {% if filter_type == 'tenders' %}selected{% endif %}>Appels d'Offres</option>
+                        <option value="templates" {% if filter_type == 'templates' %}selected{% endif %}>Modèles de Rédaction</option>
+                        <option value="generated" {% if filter_type == 'generated' %}selected{% endif %}>Offres Générées</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Rechercher</label>
+                    <input type="text" class="form-control" id="search" name="search" value="{{ search_term }}" placeholder="Rechercher...">
+                </div>
+
+                <div class="col-md-4">
+                    <label for="sort" class="form-label">Trier par</label>
+                    <select class="form-select" id="sort" name="sort" onchange="this.form.submit()">
+                        <option value="date_desc" {% if sort_by == 'date_desc' %}selected{% endif %}>Date (récent)</option>
+                        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>Date (ancien)</option>
+                        <option value="reference" {% if sort_by == 'reference' %}selected{% endif %}>Référence</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-search"></i> Rechercher
+                </button>
+                <a href="{{ url_for('library') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Résultats -->
+{% if documents %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> <strong>{{ documents | length }}</strong> document(s) trouvé(s)
+    </div>
+
+    <div class="row">
+        {% for doc in documents %}
+        <div class="col-md-12 mb-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">
+                                <i class="bi bi-file-earmark"></i>
+                                {{ doc.title or doc.original_filename }}
+                                {% if doc.is_template %}
+                                    <span class="badge bg-warning text-dark">Modèle</span>
+                                {% endif %}
+                            </h5>
+                            <small class="text-muted">Référence: {{ doc.reference }}</small>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{{ url_for('download', doc_id=doc.id) }}" class="btn btn-sm btn-success">
+                                <i class="bi bi-download"></i> Télécharger
+                            </a>
+                            <form method="POST" action="{{ url_for('delete', doc_id=doc.id) }}" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce document ?');">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Type:</strong> {{ doc.document_type.value }} |
+                        <strong>Fichier:</strong> {{ doc.original_filename }} |
+                        <strong>Date:</strong> {{ doc.created_at | datetime_format }}
+                    </p>
+
+                    {% if doc.description %}
+                    <p class="mb-2"><strong>Description:</strong> {{ doc.description }}</p>
+                    {% endif %}
+
+                    {% if doc.extracted_text %}
+                    <details>
+                        <summary class="text-primary" style="cursor: pointer;">
+                            <i class="bi bi-eye"></i> Aperçu du contenu
+                        </summary>
+                        <div class="mt-2 p-3 bg-light rounded">
+                            <pre class="mb-0" style="white-space: pre-wrap; max-height: 300px; overflow-y: auto;">{{ doc.extracted_text[:1500] }}{% if doc.extracted_text | length > 1500 %}...{% endif %}</pre>
+                        </div>
+                    </details>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Aucun document trouvé
+    </div>
+{% endif %}
+{% endblock %}

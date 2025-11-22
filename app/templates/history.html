@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Historique - AppliWeb-AO{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">
+    <i class="bi bi-clock-history"></i> Historique des Générations
+</h1>
+
+{% if history %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> <strong>{{ history | length }}</strong> génération(s) effectuée(s)
+    </div>
+
+    {% for h in history %}
+    <div class="card shadow-sm mb-3">
+        <div class="card-header bg-light">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="bi bi-clock"></i>
+                        {{ h.created_at | datetime_format }}
+                    </h5>
+                    <small class="text-muted">{{ h.source_reference }}</small>
+                </div>
+                <div class="col-auto">
+                    {% if h.file_exists %}
+                    <a href="{{ url_for('download', doc_id=h.generated_id) }}" class="btn btn-sm btn-success">
+                        <i class="bi bi-download"></i> Télécharger
+                    </a>
+                    {% else %}
+                    <span class="badge bg-danger">Fichier introuvable</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-1">
+                        <strong>Source:</strong> {{ h.source_title }}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Modèle IA:</strong> <code>{{ h.model_used }}</code>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-1">
+                        <strong>Fichier généré:</strong> {{ h.generated_filename }}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Durée:</strong> {{ h.generation_time }}s
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> Aucune génération effectuée pour le moment.
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('generate') }}" class="btn btn-primary btn-lg">
+            <i class="bi bi-robot"></i> Générer une offre
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

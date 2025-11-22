@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Accueil - AppliWeb-AO{% endblock %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-4 text-primary">
+        <i class="bi bi-file-earmark-text"></i> AppliWeb-AO
+    </h1>
+    <p class="lead text-muted">Gestion et Automatisation des Offres de Prix</p>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mb-5">
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-cloud-upload text-primary" style="font-size: 3rem;"></i>
+                <h3 class="card-title mt-3">Upload</h3>
+                <p class="card-text">Importez vos appels d'offres et modèles de rédaction</p>
+                <a href="{{ url_for('upload') }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-right"></i> Aller à l'upload
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-robot text-success" style="font-size: 3rem;"></i>
+                <h3 class="card-title mt-3">Génération IA</h3>
+                <p class="card-text">Générez automatiquement des offres de prix avec Ollama</p>
+                <a href="{{ url_for('generate') }}" class="btn btn-success">
+                    <i class="bi bi-arrow-right"></i> Générer une offre
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm hover-card">
+            <div class="card-body text-center">
+                <i class="bi bi-book text-info" style="font-size: 3rem;"></i>
+                <h3 class="card-title mt-3">Bibliothèque</h3>
+                <p class="card-text">Consultez et gérez vos documents</p>
+                <a href="{{ url_for('library') }}" class="btn btn-info">
+                    <i class="bi bi-arrow-right"></i> Voir la bibliothèque
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<hr class="my-5">
+<h2 class="text-center mb-4">
+    <i class="bi bi-graph-up"></i> Statistiques
+</h2>
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Appels d'Offres</h5>
+                <p class="display-4 text-primary">{{ stats.tenders }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Modèles de Rédaction</h5>
+                <p class="display-4 text-success">{{ stats.templates }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Offres Générées</h5>
+                <p class="display-4 text-warning">{{ stats.generated }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-muted">Total Documents</h5>
+                <p class="display-4 text-info">{{ stats.total }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ollama Models Info -->
+{% if ollama_models %}
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle"></i>
+    <strong>Modèles IA disponibles:</strong> {{ ollama_models | join(', ') }}
+</div>
+{% endif %}
+{% endblock %}
