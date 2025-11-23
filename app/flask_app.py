@@ -2,6 +2,8 @@
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for, flash, session, Response, stream_with_context
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 import json
 from datetime import datetime
@@ -13,11 +15,35 @@ from app.services import DocumentService, QuoteGenerationService
 from app.ollama_client import OllamaClient
 from app.config import ALLOWED_EXTENSIONS, MAX_FILE_SIZE_MB, UPLOAD_FOLDER, GENERATED_FOLDER
 
+
+# Middleware pour gérer le proxy et X-Forwarded-Prefix
+class PrefixMiddleware:
+    def __init__(self, app, prefix=''):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        # Récupérer le préfixe du header X-Forwarded-Prefix
+        prefix = environ.get('HTTP_X_FORWARDED_PREFIX', self.prefix)
+        if prefix:
+            environ['SCRIPT_NAME'] = prefix
+            # Ajuster PATH_INFO
+            path_info = environ.get('PATH_INFO', '')
+            if path_info.startswith(prefix):
+                environ['PATH_INFO'] = path_info[len(prefix):]
+        return self.app(environ, start_response)
+
+
 # Initialisation de Flask
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE_MB * 1024 * 1024  # En bytes
+
+# Appliquer le middleware pour gérer le proxy
+app.wsgi_app = PrefixMiddleware(app.wsgi_app)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 CORS(app)
 
 # Initialisation de la base de données
